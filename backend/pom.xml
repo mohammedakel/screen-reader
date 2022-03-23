@@ -19,7 +19,6 @@
 
   <!-- Dependencies section for libraries put all of your libraries in here -->
   <dependencies>
-
     <!--
         jopt-simple is a command line parser.
         https://pholser.github.io/jopt-simple/.
@@ -95,6 +94,13 @@
       <groupId>com.sparkjava</groupId>
       <artifactId>spark-core</artifactId>
       <version>2.9.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.vaadin.external.google</groupId>
+      <artifactId>android-json</artifactId>
+      <version>0.0.20131108.vaadin1</version>
+      <scope>compile</scope>
     </dependency>
 
     <!--

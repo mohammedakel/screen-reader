@@ -32,8 +32,6 @@ public class REPL {
     //add preset commands here
     commands.put("exit", new ExitCommand());
     commands.put("load", new LoadDatabase());
-
-    doREPL();
   }
 
   /**
@@ -110,4 +108,11 @@ public class REPL {
     return input;
   }
 
+  /**
+   * Accessor for the DataStorage instance for use in the TableHandler in Main.java
+   * @return  Global instance of DataStorage
+   */
+  public DataStorage getDataStorage() {
+    return data;
+  }
 }
