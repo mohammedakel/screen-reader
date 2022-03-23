@@ -1,0 +1,7 @@
+INPUT
+load data/movies.sqlite3 EXTRA
+load
+OUTPUT
+ERROR:
+ERROR:
+END
