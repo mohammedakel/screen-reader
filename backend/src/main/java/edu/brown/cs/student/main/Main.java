@@ -29,41 +29,37 @@ public final class Main {
   }
 
   private void run() {
-	  
     OptionParser parser = new OptionParser();
     parser.accepts("gui");
     parser.accepts("port").withRequiredArg().ofType(Integer.class).defaultsTo(DEFAULT_PORT);
 
     OptionSet options = parser.parse(args);
-    
-	if (options.has("gui")) {
-		runSparkServer((int) options.valueOf("port"));
-	}    
-  }
-  
-  private static void runSparkServer(int port) {
-      Spark.port(port);
-      Spark.externalStaticFileLocation("src/main/resources/static");
-      
-      Spark.options("/*", (request, response) -> {
-          String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
-          if (accessControlRequestHeaders != null) {
-            response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
-          }
-
-          String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
-
-          if (accessControlRequestMethod != null) {
-            response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
-          }
-
-          return "OK";
-        });
-
-        Spark.before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
-        
-        // Put Routes Here
-        // Spark.get("/table", new TableHandler());
-        Spark.init();
+    if (options.has("gui")) {
+      runSparkServer((int) options.valueOf("port"));
     }
+    //create and run the REPL
+    new REPL();
+  }
+  private static void runSparkServer(int port) {
+    Spark.port(port);
+    Spark.externalStaticFileLocation("src/main/resources/static");
+    Spark.options("/*", (request, response) -> {
+      String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
+      if (accessControlRequestHeaders != null) {
+        response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
+      }
+
+      String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
+
+      if (accessControlRequestMethod != null) {
+        response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
+      }
+
+      return "OK";
+    });
+    Spark.before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
+    // Put Routes Here
+    // Spark.get("/table", new TableHandler());
+    Spark.init();
+  }
 }
