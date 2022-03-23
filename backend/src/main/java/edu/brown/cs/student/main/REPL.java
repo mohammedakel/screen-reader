@@ -109,7 +109,7 @@ public class REPL {
   }
 
   /**
-   * Accessor for the DataStorage instance for use in the TableHandler in Main.java
+   * Accessor for the DataStorage instance for use in the TableHandler in Main.java.
    * @return  Global instance of DataStorage
    */
   public DataStorage getDataStorage() {

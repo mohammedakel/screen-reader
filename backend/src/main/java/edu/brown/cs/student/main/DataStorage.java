@@ -3,7 +3,6 @@ package edu.brown.cs.student.main;
 import edu.brown.cs.student.main.table.Table;
 
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * DataStorage is passed into every Command by the REPL so that if they need to use the Table

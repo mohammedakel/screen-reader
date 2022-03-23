@@ -2,7 +2,6 @@ package edu.brown.cs.student.main.commands;
 
 import edu.brown.cs.student.main.DataStorage;
 import edu.brown.cs.student.main.Database;
-import edu.brown.cs.student.main.table.Column;
 import edu.brown.cs.student.main.table.Table;
 
 import java.sql.SQLException;
