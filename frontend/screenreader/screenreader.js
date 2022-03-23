@@ -1,63 +1,45 @@
 "use strict";
-// Look up the Web Speech API (https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
-// Initialize this variable when the window first loads
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var set = Reflect.set;
 let VOICE_SYNTH = window.speechSynthesis;
 // The current speaking rate of the screen reader
-let VOICE_RATE = 0.7;
+let VOICE_RATE = 1;
 // Stores elements and their handler functions
-// Think of an appropriate data structure to do this
-// Assign this variable in mapPage()
-let ELEMENT_HANDLERS = new Map();
+let ELEMENT_HANDLERS;
+// Stores element ids
+let ELEMENT_IDS;
 // Indicates the current element that the user is on
-// You can decide the type of this variable
-let current;
-let numID = 0;
-// Indicates the order of the element
-let currentOrder = 0;
-let paused = false;
-// a stack used to read a given web page linearly
-let elementsIDs = [];
-// keeps a list of HTML elements supported by this screen reader
-// returned DOM HTML element tag is always capitalized
+let current = 0;
+let ID_COUNT = 0;
 const supportedTags = ["TITLE", "P", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "A", "INPUT", "BUTTON",
     "TABLE", "CAPTION", "TD", "TFOOT", "TH", "TR"];
 /**
  * Speaks out text.
  * @param text the text to speak
- * @param id of the element being read
- *
  */
-function speak(text, id) {
-    /**
-    const element: HTMLElement | null = document.getElementById(id);
-    return new Promise<void>((resolve, reject) => {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.rate = VOICE_RATE;
-        utter.onstart = () => {
-            element!.style.backgroundColor = "green";
-        };
-        utter.onend = () => {
-            element!.style.removeProperty("background-color");
-            resolve();
-        };
-        console.log(text)
-        VOICE_SYNTH.speak(utter);
-    });
-     */
-    if (VOICE_SYNTH) {
-        const element = document.getElementById(id);
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.onstart = () => {
-            element.style.backgroundColor = "green";
-        };
-        utterance.onend = () => {
-            element.style.removeProperty("background-color");
-        };
-        utterance.rate = VOICE_RATE;
+function speak(text) {
+    return __awaiter(this, void 0, void 0, function* () {
         console.log(text);
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = VOICE_RATE;
+        VOICE_SYNTH.cancel();
         VOICE_SYNTH.speak(utterance);
-    }
+        return new Promise(resolve => {
+            utterance.onend = () => {
+                resolve();
+            };
+        });
+    });
 }
+// On window load, we can generateHandlers and add an even listener for keystrokes.
 window.onload = () => {
     generateHandlers();
     document.body.innerHTML = `
@@ -71,81 +53,70 @@ window.onload = () => {
     document.addEventListener("keydown", globalKeystrokes);
 };
 /**
- *
- * This function is responsible for retriving all supported HTML elements and their Handler functions
- *
+ * This function is responsible for retrieving all supported HTML elements and their Handler functions
  */
 function generateHandlers() {
-    // get all the HTML elements in the DOM
     const elements = document.getElementsByTagName("*");
-    let counter = 0;
-    // for each element: check if it is supported, push ID, add element and its handler function
-    for (const elt of elements) {
-        // check this is a supported element
-        const currentTag = elt.tagName;
-        if (!(currentTag in supportedTags)) {
-            console.log("Error: Unsupported HTML Element");
-            console.log(currentTag);
+    ELEMENT_HANDLERS = new Map();
+    let count = "a";
+    for (const element of elements) {
+        //reset id if needed
+        if (element.id === "") {
+            element.id = ID_COUNT.toString();
+            ID_COUNT++;
         }
-        // assign ids if applicable
-        let currentID = '';
-        if (elt.id != '') {
-            currentID = elt.id;
-        }
-        else {
-            currentID = counter.toString();
-            elt.setAttribute("id", currentID);
-            counter++;
-        }
-        elementsIDs.push(currentID);
-        // add each element to ELEMENT_HANDLERS, along with its handler
+        const currentID = element.id;
+        const currentTag = element.tagName;
+        // If the element is of type text
         if (currentTag === "TITLE" || currentTag === "H1" || currentTag === "H2" ||
             currentTag === "H3" || currentTag === "H4" || currentTag === "H5" || currentTag === "H6"
             || currentTag === "P") {
-            ELEMENT_HANDLERS.set(currentID, textHandler);
+            ELEMENT_HANDLERS.set(currentID, textHandler(element));
         }
         else if (currentTag === "IMG") {
-            ELEMENT_HANDLERS.set(currentID, imgHandler);
+            const elementHTML = element;
+            ELEMENT_HANDLERS.set(currentID, imgHandler(element));
         }
-        else if (currentTag === "A") {
-            ELEMENT_HANDLERS.set(currentID, linkHandler);
-        }
-        else if (currentTag === "INPUT") {
-            ELEMENT_HANDLERS.set(currentID, inputHandler);
+        else if (element.tagName === "A") {
+            ELEMENT_HANDLERS.set(currentID, linkHandler(element));
         }
         else if (currentTag === "BUTTON") {
-            ELEMENT_HANDLERS.set(currentID, buttonHandler);
+            ELEMENT_HANDLERS.set(currentID, buttonHandler(element));
         }
-        else if (currentTag === "CAPTION") {
-            ELEMENT_HANDLERS.set(currentID, captionHandler);
-        }
-        else if (currentTag === "TD") {
-            ELEMENT_HANDLERS.set(currentID, tdHandler);
-        }
-        else if (currentTag === "TFOOT") {
-            ELEMENT_HANDLERS.set(currentID, tfootHandler);
-        }
-        else if (currentTag === "TH") {
-            ELEMENT_HANDLERS.set(currentID, thHandler);
-        }
-        else if (currentTag === "TR") {
-            ELEMENT_HANDLERS.set(currentID, trHandler);
+        else if (currentTag === "INPUT") {
+            ELEMENT_HANDLERS.set(currentID, inputHandler(element));
         }
         else if (currentTag === "TABLE") {
-            ELEMENT_HANDLERS.set(currentID, tableHandler);
+            ELEMENT_HANDLERS.set(currentID, tableHandler(element));
         }
+        else if (currentTag === "CAPTION") {
+            ELEMENT_HANDLERS.set(currentID, captionHandler(element));
+        }
+        else if (currentTag === "TD") {
+            ELEMENT_HANDLERS.set(currentID, tdHandler(element));
+        }
+        else if (currentTag === "TR") {
+            ELEMENT_HANDLERS.set(currentID, trHandler(element));
+        }
+        else if (currentTag === "TH") {
+            ELEMENT_HANDLERS.set(currentID, thHandler(element));
+        }
+        else if (currentTag === "TFOOT") {
+            ELEMENT_HANDLERS.set(currentID, tfootHandler(element));
+        }
+        // Store element IDS for future reference
+        ELEMENT_IDS = Array.from(ELEMENT_HANDLERS.keys());
     }
 }
 /**
- * This function is responsible for reading HTML Elements that contains text
+ * This function is responsible for reading HTML Elements text contains text
  * @param  element
  */
-// is there a more specific tag for HTML text elements?
 function textHandler(element) {
     const currentID = element.id;
     const currentTag = element.tagName;
     const toRead = `${currentTag}: ${element.textContent}`;
-    return speak(toRead, currentID);
+    return toRead;
 }
 /**
  *
@@ -160,13 +131,13 @@ function imgHandler(element) {
     if (altText != "") {
         toRead = `image of ${altText}`;
     }
-    return speak(toRead, currentID);
+    return toRead;
 }
 /**
  *
  * This function is responsible for reading embeded hyperlinks
  * allows user to pause, manually click on the link and resume reading
- * currently working on automatic link handling
+ * or press enter to click
  *
  * @param  element
  *
@@ -177,18 +148,57 @@ function linkHandler(element) {
     const title = element.text;
     let toRead = '';
     if (title === '' && !(link === '')) {
-        toRead = "This is a link to: " + link + "  Press enter to pause and interact manually. " +
-            "Press Escape to resume. Press C to click on the link";
+        toRead = `a link to ${link}-Press P to pause and interact manually or Press Enter  to click on the link`;
     }
     else if (link === '') {
-        toRead = "Invalid Link. Press enter to interact and Pause. Press Escape to resume. Press C to " +
-            "click on the link";
+        toRead = `an invalid link`;
     }
     else {
-        toRead = "This is a link to: " + link + "titled: " + title + "  Press enter to interact and Pause. " +
-            "Press Escape to resume. Press C to click on the link";
+        toRead = `a link to ${link}-titled ${title}-Press P to pause and interact manually or 
+        Press Enter  to click on the link`;
     }
-    return speak(toRead, currentID);
+    return toRead;
+}
+/**
+ * This function is responsible for reading buttons. It guides users on how to navigate the three types of buttons
+ * users can pause, manually click and resume or Press Enter to click
+ * @param  element
+ */
+function buttonHandler(element) {
+    const currentID = element.id;
+    const type = element.type;
+    const name = element.name;
+    const textContent = element.textContent;
+    let toRead = ``;
+    if (type === "submit") {
+        toRead = `A submit button. Press P to pause and interact manually or Enter to submit`;
+        if (element.textContent != '') {
+            const label = element.textContent;
+            toRead = `A submit button labeled ${label}-Press P to pause and interact manually or Enter to submit`;
+        }
+    }
+    else if (type === "reset") {
+        toRead = `A reset button. Press P to pause and interact manually or Enter to reset`;
+        if (element.textContent != '') {
+            const label = element.textContent;
+            toRead = `A reset button labeled ${label}-Press P to pause and interact manually or Enter to reset`;
+        }
+    }
+    else {
+        if (element.name != '' && element.textContent != '') {
+            toRead = `${type}-typed button with name ${element.name}-and label ${element.textContent}-Press
+           P to pause and interact manually or Enter to click`;
+        }
+        else if (element.textContent != '' && element.name == '') {
+            toRead = `${type}-typed button labeled ${element.textContent}-Press
+           P to pause and interact manually or Enter to click`;
+        }
+        else if (element.textContent == '' && element.name != '') {
+            toRead = `${type}-typed button names ${element.name}-Press
+           P to pause and interact manually or Enter to click`;
+        }
+    }
+    return toRead;
 }
 /**
  * This function is responsible for reading input elements. Guides users to pause, manually type their inputs
@@ -202,74 +212,18 @@ function inputHandler(element) {
     let toRead = `${type}-typed input with no label`;
     if (label != null) {
         const labelText = label.innerHTML;
-        toRead = `${labelText} input of type: ${type}-Press enter to pause and type your response. 
-        Press Escape to resume`;
+        toRead = `${labelText} input of type: ${type}-Press C to interact`;
     }
-    else if (element.ariaLabel != null) {
-        toRead = `${element.ariaLabel}-input of type: ${type}-Press enter to pause and type your response. 
-        Press Escape to resume`;
+    else if (element.ariaLabel != '') {
+        toRead = `${element.ariaLabel}-input of type: ${type}-Press C to interact`;
     }
     else if (element.name != '') {
-        toRead = `${element.name}-input of type: ${type}-Press enter to pause and type your response. 
-        Press Escape to resume`;
+        toRead = `${element.name}-input of type: ${type}-Press C to interact`;
     }
     else if (element.value != '') {
-        toRead = `${type}-typed input with value ${element.value} Press enter to pause and type your response. 
-        Press Escape to resume`;
+        toRead = `${type}-typed input with value ${element.value} Press C to interact`;
     }
-    return speak(toRead, element.id);
-}
-/**
- * This function is responsible for reading buttons. It guides users on how to navigate the three types of buttons
- * users can pause, manually click and resume or Press C to automatically click the button
- * @param  element
- */
-function buttonHandler(element) {
-    const currentID = element.id;
-    const type = element.type;
-    const name = element.name;
-    const textContent = element.textContent;
-    let toRead = `${type}-typed button`;
-    if (type === "submit") {
-        toRead = 'This is a submit button. Press enter to pause. Press Escape to resume or Press C to submit';
-        if (element.textContent != null) {
-            const label = element.textContent;
-            toRead = "This is a submit button tittled" + label + "Press enter to pause. Press Escape to resume " +
-                " or Press C to submit";
-        }
-    }
-    else if (type === "reset") {
-        toRead = 'This is a reset button. Press enter to pause. Press Escape to resume or Press C to reset';
-        if (element.textContent != null) {
-            const label = element.textContent;
-            toRead = "This is a reset button tittled" + label + "Press enter to pause. Press Escape to resume " +
-                " or Press C to submit";
-        }
-    }
-    else {
-        if (element.name != '' && element.textContent != '') {
-            toRead = `${type}-typed button with name ${element.name}-and label ${element.textContent}-Press 
-            enter to pause. Press Escape to resume or Press C to click`;
-        }
-        else if (element.textContent != '' && element.name == '') {
-            toRead = `${type}-typed button with label ${element.textContent}-Press 
-            enter to pause. Press Escape to resume or Press C to click`;
-        }
-        else if (element.textContent == '' && element.name != '') {
-            toRead = `${type}-typed button with name ${element.name}-Press 
-            enter to pause. Press Escape to resume or Press C to click`;
-        }
-    }
-    return speak(toRead, currentID);
-}
-/**
- * This function is responsible for reading tables
- * @param  element
- */
-function tableHandler(element) {
-    const currentID = element.id;
-    let toRead = 'Table starts Here';
-    return speak(toRead, currentID);
+    return toRead;
 }
 /**
  * This function is responsible for reading table captions
@@ -277,43 +231,43 @@ function tableHandler(element) {
  */
 function captionHandler(element) {
     const currentID = element.id;
-    let toRead = "Table Caption: " + element.textContent;
-    return speak(toRead, currentID);
+    let toRead = `Table Caption ${element.textContent}`;
+    return toRead;
 }
 /**
  * This function is responsible for reading  data cells
  * @param  element
  */
 function tdHandler(element) {
-    const currentID = element.id;
-    let toRead = element.textContent;
-    return speak(toRead, currentID);
+    return element.textContent;
 }
 /**
  * This function is responsible for reading header cells
  * @param  element
- */ function thHandler(element) {
-    const currentID = element.id;
-    let toRead = element.textContent;
-    return speak(toRead, currentID);
+ */
+function thHandler(element) {
+    return element.textContent;
 }
 /**
  * This function is responsible for reading tables rows
  * @param  element
  */
 function trHandler(element) {
-    const currentID = element.id;
-    let toRead = "New Row";
-    return speak(toRead, currentID);
+    return "New Row";
 }
 /**
  * This function is responsible for reading tables footers
  * @param  element
  */
 function tfootHandler(element) {
-    const currentID = element.id;
-    let toRead = element.textContent;
-    return speak(toRead, currentID);
+    return element.textContent;
+}
+/**
+ * This function is responsible for announcing tables
+ * @param  element
+ */
+function tableHandler(element) {
+    return "Begin Table";
 }
 /**
  * Changes the speaking rate of the screen reader.
@@ -331,63 +285,64 @@ function changeVoiceRate(factor) {
 /**
  * Moves to the next HTML element in the DOM.
  */
-function next() { }
+function next() {
+    VOICE_SYNTH.cancel();
+}
 /**
  * Moves to the previous HTML element in the DOM.
  */
 function previous() {
-    currentOrder -= 2;
-    // Makes sure that the up arrow never crashes the screen reader
-    if (currentOrder < 0) {
-        currentOrder = -1;
-    }
-    VOICE_SYNTH.cancel();
+    return __awaiter(this, void 0, void 0, function* () {
+        current -= 2;
+        // Makes sure that the up arrow never crashes the screen reader
+        if (current < 0) {
+            current = -1;
+        }
+        VOICE_SYNTH.cancel();
+    });
 }
 /**
- * Starts reading the page continuously.
+ * Starts reading the page. This is called when the user presses Space.
  */
 function start() {
-    paused = false;
-    while (currentOrder < ELEMENT_HANDLERS.size) {
-        for (let [key, value] of ELEMENT_HANDLERS) {
-            //console.log(key + " = " + value);
-            let element = document.getElementById(key);
-            console.log(element);
-            current = element;
-            value(element);
-            //console.log(current);
-            currentOrder += 1;
+    return __awaiter(this, void 0, void 0, function* () {
+        while (current < ELEMENT_HANDLERS.size) {
+            const currentId = ELEMENT_IDS[current];
+            const element = document.getElementById(currentId);
+            // Highlight
+            const originalColor = element.style.backgroundColor;
+            element.style.backgroundColor = "yellow";
+            // Speak and wait for the utterance to finish
+            const value = ELEMENT_HANDLERS.get(currentId);
+            yield speak(value);
+            // Restore original background color
+            element.style.backgroundColor = originalColor;
+            current += 1;
         }
-    }
-    currentOrder = 0;
+        // Reset so that the page can be read again on Space
+        current = 0;
+    });
 }
 /**
- * Pauses the reading of the page.
+ * Pauses the speaking
  */
 function pause() {
-    console.log("pausing");
-    paused = true;
     VOICE_SYNTH.pause();
 }
 /**
- /**
- * Resumes the reading of the page.
+ * Resumes the speaking
  */
 function resume() {
-    console.log("resuming");
-    paused = false;
     VOICE_SYNTH.resume();
 }
 /**
- * Listens for keydown events.
+ * for keydown events.
  * @param event keydown event
  */
 function globalKeystrokes(event) {
-    // can change and add key mappings as needed
     if (event.key === " ") {
         event.preventDefault();
         start();
-        resume();
     }
     else if (event.key === "ArrowRight") {
         event.preventDefault();
@@ -399,22 +354,12 @@ function globalKeystrokes(event) {
     }
     else if (event.key === "p") {
         event.preventDefault();
-        pause();
-    }
-    else if (event.key === "Enter") {
-        // For button input elements and links
-        event.preventDefault();
-        pause();
-    }
-    else if (event.key === "Escape") {
-        // For button input elements and links
-        resume();
-    }
-    else if (event.key === "c") {
-        //check why this is not working for links. it does work for buttons
-        console.log(current);
-        current.click();
-        console.log("clicked!");
+        if (VOICE_SYNTH.paused) {
+            resume();
+        }
+        else {
+            pause();
+        }
     }
     else if (event.key === "ArrowUp") {
         event.preventDefault();
@@ -423,5 +368,17 @@ function globalKeystrokes(event) {
     else if (event.key === "ArrowDown") {
         event.preventDefault();
         next();
+    }
+    else if (event.code === "c") {
+        event.preventDefault();
+        const currentId = ELEMENT_IDS[current];
+        const element = document.getElementById(currentId);
+        element.focus();
+    }
+    else if (event.key === "Enter") {
+        event.preventDefault();
+        const currentId = ELEMENT_IDS[current];
+        const element = document.getElementById(currentId);
+        element.click();
     }
 }
