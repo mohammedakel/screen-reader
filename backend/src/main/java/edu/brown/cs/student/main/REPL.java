@@ -1,8 +1,13 @@
 package edu.brown.cs.student.main;
 
+import edu.brown.cs.student.main.commands.Command;
+import edu.brown.cs.student.main.commands.ExitCommand;
+import edu.brown.cs.student.main.commands.LoadDatabase;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -26,6 +31,7 @@ public class REPL {
 
     //add preset commands here
     commands.put("exit", new ExitCommand());
+    commands.put("load", new LoadDatabase());
 
     doREPL();
   }
@@ -44,7 +50,7 @@ public class REPL {
         if (!line.equals("\n")) {
           parse(line);
         }
-      } catch (IOException e) {
+      } catch (IOException | SQLException | ClassNotFoundException e) {
         e.printStackTrace();
       }
     }
@@ -54,7 +60,7 @@ public class REPL {
    * Parses REPL input and calls the appropriate Command (if it exists).
    * @param line The input String
    */
-  public void parse(String line) {
+  public void parse(String line) throws SQLException, ClassNotFoundException {
     //split the String by spaces, controlling for quotes
     ArrayList<String> input = doRegex(line);
 

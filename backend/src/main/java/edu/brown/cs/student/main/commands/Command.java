@@ -1,5 +1,8 @@
-package edu.brown.cs.student.main;
+package edu.brown.cs.student.main.commands;
 
+import edu.brown.cs.student.main.DataStorage;
+
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -12,5 +15,6 @@ public interface Command {
    * @param data DataStorage class with Tables; it doesn't need to be used.
    * @param arguments Additional arguments the Command may take; this can be empty.
    */
-  void doCommand(DataStorage data, ArrayList<String> arguments);
+  void doCommand(DataStorage data, ArrayList<String> arguments)
+      throws SQLException, ClassNotFoundException;
 }
