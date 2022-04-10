@@ -1,18 +1,14 @@
 import set = Reflect.set;
 let VOICE_SYNTH: SpeechSynthesis = window.speechSynthesis;
-
 // The current speaking rate of the screen reader
 let VOICE_RATE: number = 1;
-
 // Stores elements and their handler functions
 let ELEMENT_HANDLERS: Map<string, string>;
 // Stores element ids
 let ELEMENT_IDS: Array<string>;
-
 // Indicates the current element that the user is on
 let current: number = 0;
 let ID_COUNT: number = 0;
-
 const supportedTags = ["TITLE", "P", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "A", "INPUT", "BUTTON",
     "TABLE", "CAPTION", "TD", "TFOOT", "TH", "TR"];
 
@@ -54,7 +50,6 @@ window.onload = () => {
 function generateHandlers(): void {
     const elements: HTMLCollection = document.getElementsByTagName("*") as HTMLCollection;
     ELEMENT_HANDLERS = new Map<string, string>();
-    let count: string = "a";
     for (const element of elements) {
         //reset id if needed
         if (element.id === "") {
@@ -203,16 +198,16 @@ function inputHandler(element: HTMLInputElement) {
     let toRead: string = `${type}-typed input with no label`;
     if (label != null) {
         const labelText = label.innerHTML;
-        toRead = `${labelText} input of type: ${type}-Press C to interact`;
+        toRead = `${labelText} input of type: ${type}-Press P to pause and interact manually or Press right shift to interact`;
     }
     else if (element.ariaLabel != '') {
-        toRead = `${element.ariaLabel}-input of type: ${type}-Press C to interact`;
+        toRead = `${element.ariaLabel}-input of type: ${type}-Press P to pause and interact manually or Press right shift to interact`;
     }
     else if (element.name != '') {
-        toRead = `${element.name}-input of type: ${type}-Press C to interact`;
+        toRead = `${element.name}-input of type: ${type}-Press P to pause and interact manually or Press right shift to interact`;
     }
     else if (element.value != '') {
-        toRead = `${type}-typed input with value ${element.value} Press C to interact`;
+        toRead = `${type}-typed input with value ${element.value} Press enter to interact`;
     }
     return toRead;
 }
@@ -293,7 +288,7 @@ function next() {
  */
 async function previous() {
     current -= 2;
-    // Makes sure that the up arrow never crashes the screen reader
+    // boundary check
     if (current < 0) {
         current = -1;
     }
@@ -363,7 +358,7 @@ function globalKeystrokes(event: KeyboardEvent): void {
     } else if (event.key === "ArrowDown") {
         event.preventDefault();
         next();
-    } else if (event.code === "c") {
+    } else if (event.code === "RightShift") {
         event.preventDefault();
         const currentId: string = ELEMENT_IDS[current];
         const element: HTMLInputElement = document.getElementById(currentId) as HTMLInputElement;
