@@ -58,7 +58,6 @@ window.onload = () => {
 function generateHandlers() {
     const elements = document.getElementsByTagName("*");
     ELEMENT_HANDLERS = new Map();
-    let count = "a";
     for (const element of elements) {
         //reset id if needed
         if (element.id === "") {
@@ -212,16 +211,16 @@ function inputHandler(element) {
     let toRead = `${type}-typed input with no label`;
     if (label != null) {
         const labelText = label.innerHTML;
-        toRead = `${labelText} input of type: ${type}-Press C to interact`;
+        toRead = `${labelText} input of type: ${type}-Press P to pause and interact manually or Press right shift to interact`;
     }
     else if (element.ariaLabel != '') {
-        toRead = `${element.ariaLabel}-input of type: ${type}-Press C to interact`;
+        toRead = `${element.ariaLabel}-input of type: ${type}-Press P to pause and interact manually or Press right shift to interact`;
     }
     else if (element.name != '') {
-        toRead = `${element.name}-input of type: ${type}-Press C to interact`;
+        toRead = `${element.name}-input of type: ${type}-Press P to pause and interact manually or Press right shift to interact`;
     }
     else if (element.value != '') {
-        toRead = `${type}-typed input with value ${element.value} Press C to interact`;
+        toRead = `${type}-typed input with value ${element.value} Press enter to interact`;
     }
     return toRead;
 }
@@ -294,7 +293,7 @@ function next() {
 function previous() {
     return __awaiter(this, void 0, void 0, function* () {
         current -= 2;
-        // Makes sure that the up arrow never crashes the screen reader
+        // boundary check
         if (current < 0) {
             current = -1;
         }
@@ -369,7 +368,7 @@ function globalKeystrokes(event) {
         event.preventDefault();
         next();
     }
-    else if (event.code === "c") {
+    else if (event.code === "RightShift") {
         event.preventDefault();
         const currentId = ELEMENT_IDS[current];
         const element = document.getElementById(currentId);

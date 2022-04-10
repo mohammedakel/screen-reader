@@ -114,6 +114,16 @@
     </dependency>
 
     <!--
+        Dependency for selenium from class.
+
+    -->
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>4.0.0</version>
+    </dependency>
+
+    <!--
         SQLite dependency for databases.
         https://bitbucket.org/xerial/sqlite-jdbc.
     -->
