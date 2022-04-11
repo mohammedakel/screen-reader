@@ -1,0 +1,9 @@
+INPUT
+load data/horoscopes.sqlite3
+load data/kanban.sqlite3
+load data/movies.sqlite3
+OUTPUT
+Loaded data/horoscopes.sqlite3
+Loaded data/kanban.sqlite3
+Loaded data/movies.sqlite3
+END
