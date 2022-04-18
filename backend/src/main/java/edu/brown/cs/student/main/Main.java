@@ -1,12 +1,19 @@
 package edu.brown.cs.student.main;
 
+import edu.brown.cs.student.main.table.Column;
+import edu.brown.cs.student.main.table.Table;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
 import com.google.gson.Gson;
+
+import java.util.List;
 
 
 /**
@@ -67,6 +74,9 @@ public final class Main {
     Spark.before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
     // Put Routes Here
     Spark.get("/table", new TableHandler());
+    Spark.post("/delete-row", new DeleteRow());
+    Spark.post("/delete-column", new DeleteColumn());
+    Spark.post("/add-row", new AddRow());
     Spark.init();
   }
   /**
@@ -79,6 +89,79 @@ public final class Main {
       DataStorage data = repl.getDataStorage();
       Gson gson = new Gson();
       return gson.toJson(data.getTables().values());
+    }
+  }
+
+  private class DeleteRow implements Route {
+    @Override
+    public String handle(Request req, Response res) throws JSONException {
+      JSONObject reqJson = null;
+      try {
+        // Put the request's body in JSON format
+        reqJson = new JSONObject(req.body());
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+
+      String tableName = reqJson.getString("table");
+      DataStorage data = repl.getDataStorage();
+      Table table = data.getTables().get(tableName);
+      List<Column> columns = table.getColumns();
+      for (Column col : columns) {
+        col.deleteRow(reqJson.getInt("row"));
+      }
+      return "";
+    }
+  }
+
+  private class DeleteColumn implements Route {
+    @Override
+    public String handle(Request req, Response res) throws JSONException {
+      JSONObject reqJson = null;
+      try {
+        // Put the request's body in JSON format
+        reqJson = new JSONObject(req.body());
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+
+      String tableName = reqJson.getString("table");
+      DataStorage data = repl.getDataStorage();
+      Table table = data.getTables().get(tableName);
+      List<Column> columns = table.getColumns();
+      Column deleteThisOne = null;
+      for (Column col : columns) {
+        if (col.getName().equals(reqJson.getString("column"))) {
+          deleteThisOne = col;
+          break;
+        }
+      }
+      table.getColumns().remove(deleteThisOne);
+      return "";
+    }
+  }
+
+  private class AddRow implements Route {
+    @Override
+    public String handle(Request req, Response res) throws JSONException {
+      JSONObject reqJson = null;
+      try {
+        // Put the request's body in JSON format
+        reqJson = new JSONObject(req.body());
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+
+      String tableName = reqJson.getString("table");
+      DataStorage data = repl.getDataStorage();
+      Table table = data.getTables().get(tableName);
+      List<Column> columns = table.getColumns();
+      JSONArray content = reqJson.getJSONArray("content");
+      //content should have the same number of columns as the Table
+      for (int i = 0; i < content.length(); i++) {
+        columns.get(i).getRows().add(0, content.getString(i));
+      }
+      return "";
     }
   }
 }

@@ -14,7 +14,7 @@ type Table = {
   columns: Array<Column>;
   name: string;
 }
-
+ 
 //where the data is ultimately stored
 let tableStorage: Array<Table> = new Array()
 
