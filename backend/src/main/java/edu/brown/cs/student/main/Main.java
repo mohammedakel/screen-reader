@@ -35,9 +35,9 @@ public final class Main {
   }
 
   private String[] args;
-  private REPL repl;
+  private static REPL repl;
 
-  private Main(String[] args) {
+  public Main(String[] args) {
     this.args = args;
   }
 
@@ -54,7 +54,7 @@ public final class Main {
     repl = new REPL();
     repl.doREPL();
   }
-  private void runSparkServer(int port) {
+  public static void runSparkServer(int port) {
     Spark.port(port);
     Spark.externalStaticFileLocation("src/main/resources/static");
     Spark.options("/*", (request, response) -> {
@@ -83,7 +83,7 @@ public final class Main {
    * Handles GET requests called from the frontend. Will return a JSON-formatted String of all the
    * Table data. As such, the GET request only needs to be called once.
    */
-  private class TableHandler implements Route {
+  private static class TableHandler implements Route {
     @Override
     public String handle(Request req, Response res) {
       DataStorage data = repl.getDataStorage();
