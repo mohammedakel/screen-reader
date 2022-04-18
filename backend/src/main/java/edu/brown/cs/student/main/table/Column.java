@@ -37,6 +37,9 @@ public class Column {
   public void addRow(String row) {
     rows.add(row);
   }
+  public void deleteRow(int row) {
+    rows.remove(row);
+  }
   public List<String> getRows() {
     return rows;
   }

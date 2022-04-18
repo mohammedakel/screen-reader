@@ -1,0 +1,87 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 200px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#table-container {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 50px;
+}
+
+#edit-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-left: 50px;
+  background-color: #dddddd;
+  padding: 15px;
+  position: fixed;
+  right: 20px;
+  box-shadow: -5px 5px 3px #bbbbbb;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  border-right: 1px solid #dddddd;
+  border-left: 1px solid #dddddd;
+}
+
+th {
+  border-bottom: 1px solid #dddddd;
+  text-align: left;
+}
+
+td, th {
+  padding: 0.5rem;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #eeeeee;
+}
+
+tbody tr:nth-child(even) {
+  background-color: white;
+}
+
+form {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+.form-input {
+  width: 100px;
+}
+
+#form-submit {
+  height: 30px;
+}
